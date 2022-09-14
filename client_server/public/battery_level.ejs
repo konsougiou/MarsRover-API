@@ -1,0 +1,23 @@
+<!DOCTYPE html> <html>
+<html lang="en"></html>
+<head>
+    <script src="https://cdn.socket.io/socket.io-3.0.1.min.js"></script>
+</head>
+<body>
+<h1>Battery level: </h1> <p id="Battery"></p>
+<h2>Fetching</h2>
+
+    <script>
+
+        const socket = io('http://34.196.150.158:3000')
+
+        socket.on('connection',)
+
+        socket.on('battery_message', (data) => {
+            document.querySelector('h2').innerHTML = data
+        })
+
+    </script>
+
+ </body>
+</html>

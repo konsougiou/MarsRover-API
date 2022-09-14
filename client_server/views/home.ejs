@@ -1,0 +1,303 @@
+<!DOCTYPE html> <html> 
+<html lang="en" style="  height: 100%;
+margin: 0;"></html>
+<head>
+    <script src="https://cdn.socket.io/socket.io-3.0.1.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.8.0/chart.min.js"></script>
+    <link rel="stylesheet" type="text/css"   href="home_page.css">
+</head>
+<body>
+<h1>Rover Control Panel</h1> <p id="Title"></p><br>
+,<div class = 'session_input' style = "position:absolute; top:100px; left:80px; z-index:3">
+<form action="/" method="post" id="form1">
+ <label for="id">Enter Session ID:</label> <input type="text" id="id" name="id"><br>
+<input type="submit" style="position:relative; left:10px" class = <%=State%> value=<%=State%>> </form><br>
+</div>
+<div class="battery_box" style = "position:absolute; top:200px; left:50px; z-index:3">
+<h3>Battery level: </h3> <p id = 'battery_level'>Fetching</p><div class = "battery_icon"
+style = "position:absolute; top:50px; left:90px;">
+    <div class = first style = "position:absolute; top:2px; left:2px; display:none;"></div>
+    <div class = second style = "position:absolute; top:2px; left:15px; display:none;"></div>
+    <div class = third style = "position:absolute; top:2px; left:28px; display:none;"></div>
+    <div class = fourth style = "position:absolute; top:2px; left:41px; display:none;"></div>
+    <div class = tip style = "position:absolute; top:7px; left:55px;"></div>
+</div>
+</div>
+<div class = 'rover_box' style = "position:absolute; top:375px; left:50px; z-index:3">
+<img class='alien_img' src="arrow.png" alt="" width= '50' height='50' style="position:absolute; top:5px; left:150px; z-index:4"/>
+<h3>Rover position:</h3> <p id="Position"></p>
+    <p>x: </p> <p id = 'x_position'>Fetching</p>
+    <p>y: </p><p id = 'y_position'>Fetching</p>
+</div>
+
+<div class = 'aliens_box' style = "position:absolute; top:75px; left:300px; z-index:3">
+    <img class='alien_img' src="alien.png" alt="" width= '40' height='40' style="position:absolute; top:5px; left:150px; z-index:4"/>
+    <h3>Latest alien <br> position:</h3> <p id="Position"></p>
+        <label>x: </label> <label id = 'alien_x_position'>None detected</label><br>
+        <label>y: </label><label id = 'alien_y_position'>None detected</label>
+</div>
+<div class = 'bases_box' style = "position:absolute; top:275px; left:300px; z-index:3">
+    <img class='base_img' src="base.png" alt="" width= '50' height='50' style="position:absolute; top:5px; left:145px; z-index:4">
+    <h3>Base position:</h3> <p id="Position"></p>
+        <label>x: </label> <label id = 'base_x_position'>None detected</label><br>
+        <label>y: </label><label id = 'base_y_position'>None detected</label>
+</div>
+
+<div class = 'building_box' style = "position:absolute; top:475px; left:300px; z-index:3">
+    <img class='building_img' src="building.png" alt="" width= '50' height='50' style="position:absolute; top:5px; left:150px; z-index:4">
+    <h3>Latest building position:</h3> <p id="Position"></p>
+        <label>x: </label> <label id = 'building_x_position'>None detected</label><br>
+        <label>y: </label><label id = 'building_y_position'>None detected</label>
+</div>
+
+<div id='d3' style="position:absolute; top:100px; left:600px; z-index:3">
+        
+            <label for="x">Input x-coordinate: </label><input type="text2" class= 'message1' id="x" name="x"><br>
+            <label for="y">Input y-coordinate: </label><input type="text2" class= 'message2' id="y" name="y">
+            <button id = "send_data_button" style = "position:absolute; left:260px; top:0px" class = "send_data" onclick="sendCoordinates()" disabled>Send Coordinates</button>
+            <label style = "position:absolute; left:500px; top:5px" class="toggle_text">Toggle Remote Control:</label>
+            <label style = "position:absolute; left:600px; top:28px" class="switch" value = "AUTOPILOT">
+                <input type="checkbox" onclick="toggleActive()">
+                <span class="slider round"></span>
+              </label>
+              
+                <br>
+        </div>
+        <div style="position:absolute; top:200px; left:560px; z-index:3">
+        <img class='img' src="mars_surface.jpeg" alt="" width= '737' height='417' style="position:absolute; top: 53px; left:46px; z-index:4"/>
+        <div style = "position:absolute; left:0px; top:0px; z-index:5">
+        <canvas id='chart' width= '800' height='500'></canvas>
+        </div>
+        
+    </div>
+
+        <script>
+
+            var xyValues = []
+            var xyAliens = []
+            var xyBase = []
+            var xyBuilding = []
+            var xyCurrent = []
+
+            const ctx = document.getElementById('chart');
+
+            var myChart = new Chart(ctx, {
+            type: "scatter",
+            data: {   
+                datasets: [
+                {
+                label: 'Current_Rover_Coordinates',
+                pointRadius: 6,
+                pointBackgroundColor: "rgba(50,205,50,1)",
+                data: xyCurrent,
+                backgroundColor: "rgba(50,205,50,1)"
+             },
+                {
+                label: 'Rover_Coordinates',
+                pointRadius: 6,
+                pointBackgroundColor: "rgba(0,0,255,1)",
+                data: xyValues,
+                backgroundColor: "rgba(0,0,255,1)"
+             },
+             {
+                label: 'Alien_Coordinates',
+                pointRadius: 8,
+                pointBackgroundColor: "rgba(124, 7, 7,1)",
+                data: xyAliens,
+                backgroundColor: "rgba(124, 7, 7,1)"
+             },
+             {
+                label: 'Base_Coordinates',
+                pointRadius: 10,
+                pointBackgroundColor: "rgba(128,0,128,1)",
+                data: xyBase,
+                backgroundColor: "rgba(128,0,128,1)"
+             },
+             {
+                label: 'Building_Coordinates',
+                pointRadius: 10,
+                pointBackgroundColor: "rgba(255,255,255,1)",
+                data: xyBuilding,
+                backgroundColor: "rgba(255,255,255,1)"
+             },
+
+            ]},
+            options: {
+                legend: {display: false},
+                scales: {
+                    y: {
+                        ticks: {
+                            color: 'black',
+                            stepSize: 330
+                        },
+                        min: 0,
+                        max: 2310
+                    },
+                    x: {
+                        ticks: {
+                            color: 'black',
+                            stepSize: 330
+                        },
+                        min: 0,
+                        max: 3300
+                    }
+                },
+                animation: {
+                    duration: 2
+                }
+            }});
+            
+
+            const socket = io('http://34.196.150.158:3001')
+
+            socket.on('connection',)
+
+            const toggleActive = () => {
+
+                const state = document.querySelector('.switch').value
+
+                if(state == 'REMOTE'){
+                    message = 'AUTOPILOT'
+                    socket.emit('control_state', message)
+                    document.querySelector('.switch').value = "AUTOPILOT"
+                    document.getElementById('send_data_button').disabled = true
+            }
+                else{
+                    message = 'REMOTE'
+                    socket.emit('control_state', message)
+                    document.querySelector('.switch').value = "REMOTE"
+                    document.querySelector('.send_data').disabled = false
+                }
+ 
+
+
+            }
+
+
+            const sendCoordinates = () => {
+                const x = document.querySelector('.message1').value
+                const y = document.querySelector('.message2').value
+                document.querySelector('.message1').value = ""
+                document.querySelector('.message2').value = ""
+                message = {x, y}
+                socket.emit('coordinates', message)
+            }
+            
+            socket.on('fetched_positions', (data) => {
+            const aliens = data[0]
+            const bases = data[1]
+            const buildings = data[2]
+            myChart.data.datasets.forEach((dataset) => {
+            if (dataset.label == 'Alien_Coordinates'){
+                let i = 0
+                while(i < aliens.length){
+                dataset.data.push({x: parseInt(aliens[i].X_POSITION.N,10), y: parseInt(aliens[i].Y_POSITION.N,10)});
+                i ++
+                }
+            }
+            if (dataset.label == 'Base_Coordinates'){
+                let k = 0
+                while(k < bases.length){
+                dataset.data.push({x: parseInt(bases[k].X_POSITION.N,10), y: parseInt(bases[k].Y_POSITION.N,10)});
+                k++
+                }
+            }
+
+            if (dataset.label == 'Building_Coordinates'){
+                let j = 0
+                while(j < buildings.length){
+                dataset.data.push({x: parseInt(buildings[j].X_POSITION.N,10), y: parseInt(buildings[j].Y_POSITION.N,10)});
+                j++
+                }
+            }
+
+            });    
+            myChart.update();
+                
+            })
+
+            socket.on('battery_message', (data) => {
+                document.getElementById("battery_level").innerHTML = data
+                if (data > 75){document.querySelector('.first').style.display = "inline"
+                document.querySelector('.second').style.display = "inline"
+                document.querySelector('.third').style.display = "inline"
+                document.querySelector('.fourth').style.display = "inline"
+            }
+            else if (data > 50 && data <75){document.querySelector('.first').style.display = "inline"
+                document.querySelector('.second').style.display = "inline"
+                document.querySelector('.third').style.display = "inline"
+                document.querySelector('.fourth').style.display = "none"
+            }
+            else if (data > 25 && data < 50){document.querySelector('.first').style.display = "inline"
+                document.querySelector('.second').style.display = "inline"
+                document.querySelector('.third').style.display = "none"
+                document.querySelector('.fourth').style.display = "none"
+            }
+            else if ( data < 25 && data > 0 ){document.querySelector('.first').style.display = "inline"
+                document.querySelector('.second').style.display = "none"
+                document.querySelector('.third').style.display = "none"
+                document.querySelector('.fourth').style.display = "none"
+            } 
+            else {document.querySelector('.first').style.display = "none"
+                document.querySelector('.second').style.display = "none"
+                document.querySelector('.third').style.display = "none"
+                document.querySelector('.fourth').style.display = "none"
+            }
+            })
+
+            socket.on('position_message', (data) => {
+            document.getElementById("x_position").innerHTML = data.X_POSITION.N
+            document.getElementById("y_position").innerHTML = data.Y_POSITION.N
+            myChart.data.datasets.forEach((dataset) => {
+            if (dataset.label == 'Rover_Coordinates'){
+            dataset.data.push({x: parseInt(data.X_POSITION.N,10), y: parseInt(data.Y_POSITION.N,10)});
+            }
+            if (dataset.label == 'Current_Rover_Coordinates'){
+
+            dataset.data[0] = ({x: parseInt(data.X_POSITION.N,10), y: parseInt(data.Y_POSITION.N,10)});
+            }
+            
+            });
+
+            myChart.update();
+
+            })
+
+            socket.on('alien_position_message', (data) => {
+            document.getElementById("alien_x_position").innerHTML = data.X_POSITION.N
+            document.getElementById("alien_y_position").innerHTML = data.Y_POSITION.N
+            myChart.data.datasets.forEach((dataset) => {
+            if (dataset.label == 'Alien_Coordinates'){
+            dataset.data.push({x: parseInt(data.X_POSITION.N,10), y: parseInt(data.Y_POSITION.N,10)});
+            }
+            });    
+            myChart.update();
+            })
+
+            socket.on('base_position_message', (data) => {
+            document.getElementById("base_x_position").innerHTML = data.X_POSITION.N
+            document.getElementById("base_y_position").innerHTML = data.Y_POSITION.N
+            myChart.data.datasets.forEach((dataset) => {
+            if (dataset.label == 'Base_Coordinates'){
+            dataset.data.push({x: parseInt(data.X_POSITION.N,10), y: parseInt(data.Y_POSITION.N,10)});
+            }
+            });    
+            myChart.update();
+            })
+
+            socket.on('building_position_message', (data) => {
+            document.getElementById("building_x_position").innerHTML = data.X_POSITION.N
+            document.getElementById("building_y_position").innerHTML = data.Y_POSITION.N
+            myChart.data.datasets.forEach((dataset) => {
+            if (dataset.label == 'Building_Coordinates'){
+            dataset.data.push({x: parseInt(data.X_POSITION.N,10), y: parseInt(data.Y_POSITION.N,10)});
+            }
+            });    
+            myChart.update();
+            })
+
+            
+        </script>
+    
+</body>
+</html>

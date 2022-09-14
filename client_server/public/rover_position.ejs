@@ -1,0 +1,28 @@
+<!DOCTYPE html> <html>
+<html lang="en"></html>
+<head>
+     <script src="https://cdn.socket.io/socket.io-3.0.1.min.js"></script>
+</head>
+<body>
+<h1>Rover_position:</h1> <p id="Position"></p>
+<p>x_position: </p> 
+<p id = 'x_position'>Fetching</p>
+<p>y_position:</p>
+<p id = 'y_position'>Fetching</p>
+
+<script>
+
+    const socket = io('http://34.196.150.158:3000')
+
+    socket.on('connection',)
+
+    socket.on('position_message', (data) => {
+        document.getElementById("x_position").innerHTML = data.X_POSITION.N
+        document.getElementById("y_position").innerHTML = data.Y_POSITION.N
+
+    }
+    )
+
+</script>
+ </body>
+</html>

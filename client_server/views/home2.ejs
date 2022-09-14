@@ -1,0 +1,165 @@
+<!DOCTYPE html> <html> 
+<html lang="en"></html>
+<head>
+    <script src="https://cdn.socket.io/socket.io-3.0.1.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.8.0/chart.min.js"></script>
+    <link rel="stylesheet" type="text/css"   href="home_page.css">
+</head>
+<body>
+<h1>Home Page</h1> <p id="Title"></p><br>
+
+<form action="/" method="post" id="form1">
+ <label for="id">Enter Session ID:</label><br> <input type="text" id="id" name="id">
+<input type="submit" value=<%=State%>> </form><br>
+
+<h3>Battery level: </h3> <p id = 'battery_level'>Fetching</p>
+
+<h3>Rover_position:</h3> <p id="Position"></p>
+    <p>x_coordinate: </p> <p id = 'x_position'>Fetching</p>
+    <p>y_coordinate:</p><p id = 'y_position'>Fetching</p>
+
+<div id='d3' style="position:absolute; top:100px; left:300px; z-index:3">
+    <h3>Latest_alien_position:</h3> <p id="Position"></p>
+        <p>Alien_x_coordinate: </p> <p id = 'alien_x_position'>None detected</p>
+        <p>Alien_y_coordinate:</p><p id = 'alien_y_position'>None detected</p>
+
+    <h3>Latest_base_position:</h3> <p id="Position"></p>
+        <p>Base_x_coordinate: </p> <p id = 'base_x_position'>None detected</p>
+        <p>Base_y_coordinate:</p><p id = 'base_y_position'>None detected</p>
+
+</div>
+
+<div id='d3' style="position:absolute; top:100px; left:600px; z-index:3">
+        
+            <label for="x">Input x coordinate:</label><input type="text" class= 'message1' id="x" name="x"><br>
+            <label for="y">Input y coordinate:</label><input type="text" class= 'message2' id="y" name="y">
+                <button onclick="sendCoordinates()">Send Coordinates</button>
+                <br>
+        <canvas id='chart' width= '800' height='500'></canvas>
+        </canvas>
+    </div>
+</canvas>
+        <script>
+            
+            var xyValues = []
+            var xyAliens = []
+            var xyBase = []
+
+            const ctx = document.getElementById('chart');
+
+            var myChart = new Chart(ctx, {
+            type: "scatter",
+            data: {   
+                datasets: [{
+                label: 'Rover_Coordinates',
+                pointRadius: 6,
+                pointBackgroundColor: "rgba(0,0,255,1)",
+                data: xyValues,
+             },
+             {
+                label: 'Alien_Coordinates',
+                pointRadius: 6,
+                pointBackgroundColor: "rgba(255,0,0,1)",
+                data: xyAliens,
+             },
+             {
+                label: 'Base_Coordinates',
+                pointRadius: 6,
+                pointBackgroundColor: "rgba(128,0,128,1)",
+                data: xyBase,
+             }
+            ]},
+            options: {
+                legend: {display: false},
+                scales: {
+                    y: {
+                        min: -1000,
+                        max: 1000
+                    },
+                    x: {
+                        min: -1000,
+                        max: 1000
+                    }
+                },
+                animation: {
+                    duration: 0
+                }
+            }});
+
+            const socket = io('http://34.196.150.158:4000')
+
+            socket.on('connection',)
+
+
+            const sendCoordinates = () => {
+                const x = document.querySelector('.message1').value
+                const y = document.querySelector('.message2').value
+                message = {x, y}
+                socket.emit('coordinates', message)
+            }
+            
+            socket.on('fetched_positions', (data) => {
+            const aliens = data[0]
+            const bases = data[1]
+            myChart.data.datasets.forEach((dataset) => {
+            if (dataset.label == 'Alien_Coordinates'){
+                let i = 0
+                while(i < aliens.length){
+            dataset.data.push({x: parseInt(i.X_POSITION.N), y: parseInt(i.Y_POSITION.N)});
+            i ++
+            }
+            }
+            if (dataset.label == 'Base_Coordinates'){
+                let k = 0
+                while(k < bases.length){
+                dataset.data.push({x: parseInt(k.X_POSITION.N), y: parseInt(k.Y_POSITION.N)});
+                i++
+                }
+            }
+            });    
+                
+            })
+
+            socket.on('battery_message', (data) => {
+                document.getElementById("battery_level").innerHTML = data
+            })
+
+            socket.on('position_message', (data) => {
+            document.getElementById("x_position").innerHTML = data.X_POSITION.N
+            document.getElementById("y_position").innerHTML = data.Y_POSITION.N
+            myChart.data.datasets.forEach((dataset) => {
+            if (dataset.label == 'Rover_Coordinates'){
+            dataset.data.push({x: parseInt(data.X_POSITION.N,10), y: parseInt(data.Y_POSITION.N,10)});
+            }
+            });    
+            myChart.update();
+
+            })
+
+            socket.on('alien_position_message', (data) => {
+            document.getElementById("alien_x_position").innerHTML = data.X_POSITION.N
+            document.getElementById("alien_y_position").innerHTML = data.Y_POSITION.N
+            myChart.data.datasets.forEach((dataset) => {
+            if (dataset.label == 'Alien_Coordinates'){
+            dataset.data.push({x: parseInt(data.X_POSITION.N,10), y: parseInt(data.Y_POSITION.N,10)});
+            }
+            });    
+            myChart.update();
+            })
+
+            socket.on('base_position_message', (data) => {
+            document.getElementById("base_x_position").innerHTML = data.X_POSITION.N
+            document.getElementById("base_y_position").innerHTML = data.Y_POSITION.N
+            myChart.data.datasets.forEach((dataset) => {
+            if (dataset.label == 'Base_Coordinates'){
+            dataset.data.push({x: parseInt(data.X_POSITION.N,10), y: parseInt(data.Y_POSITION.N,10)});
+            }
+            });    
+            myChart.update();
+            })
+
+            
+        </script>
+    
+</body>
+</html>

@@ -1,0 +1,45 @@
+<!DOCTYPE html> <html> 
+<html lang="en"></html>
+<head>
+    <script src="https://cdn.socket.io/socket.io-3.0.1.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.8.0/chart.min.js"></script>
+    <link rel="stylesheet" type="text/css"   href="home_page.css">
+</head>
+<body>
+<h1>Home Page</h1> <p id="Title"></p><br>
+<h2>Battery level: </h1> <p id = 'battery_level'>Fetching</p>
+<br>
+<h3>Rover_position:</h1> <p id="Position"></p>
+    <p>x_position: </p> <p id = 'x_position'>Fetching</p>
+    <p>y_position:</p><p id = 'y_position'>Fetching</p>
+    <canvas id="chart" width="200" height="200"></canvas>
+        <script>
+            var xyValues =  [];
+            const socket = io('http://34.196.150.158:3000')
+
+            socket.on('connection',)
+    
+            socket.on('battery_message', (data) => {
+                document.getElementById("battery_level").innerHTML = data
+            })
+            
+            socket.on('position_message', (data) => {
+            document.getElementById("x_position").innerHTML = data.X_POSITION.N
+            document.getElementById("y_position").innerHTML = data.Y_POSITION.N
+            })
+
+            const ctx = document.getElementById('chart');
+            var myChart = new Chart(ctx, {
+            type: "scatter",
+            data: {    datasets: [{
+                pointRadius: 6,
+                pointBackgroundColor: "rgba(0,0,255,1)",
+                data: xyValues
+                }]},
+            options: {}
+            });
+
+        </script>
+    
+</body>
+</html>

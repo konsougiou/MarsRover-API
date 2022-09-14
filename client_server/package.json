@@ -1,0 +1,14 @@
+{
+  "name": "rover_server",
+  "version": "1.0.0",
+  "description": "rover_server",
+  "main": "root.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Konstantinos_Sougiou",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.18.1"
+  }
+}
